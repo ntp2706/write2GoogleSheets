@@ -6,8 +6,6 @@
 #include "esp_camera.h"
 #include "soc/soc.h"
 #include "soc/rtc_cntl_reg.h"
-#include "FS.h"
-#include "SD_MMC.h" 
 #include <NTPClient.h>
 #include <WiFiUdp.h>
 //-----------------------
@@ -18,7 +16,7 @@
 //------------------------------
 
 // các dữ liệu cần thiết để ghi vào Google Sheets
-#define WEBAPP_URL "https://script.google.com/macros/s/AKfycbypR0qrniDbx1QCHMvI8mrdd62sUaG5uLRF58Ijf1D_GkhEBPpQL8sfctZBSC8g-bXC/exec"
+#define WEBAPP_URL "https://script.google.com/macros/s/"
 //-----------------------------------------------
 
 // khởi tạp NTP
