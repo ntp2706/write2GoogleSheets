@@ -52,7 +52,7 @@ function doPost(e) {
 // nội dung bảng tính Analysis có thể fetch
 function doGet(e) {
   let obj = {};
-  const sheet = SpreadsheetApp.openByUrl("https://docs.google.com/spreadsheets/d/1EbMqJPy0R0F8AAqUK3mN8yYCB-Gop0klWEOum9Up5zA/edit?gid=1149590755#gid=1149590755").getSheetByName("Analysis");
+  const sheet = SpreadsheetApp.openByUrl("https://docs.google.com/spreadsheets/d/").getSheetByName("Analysis");
   const data = sheet.getDataRange().getValues();
   obj.content = data;
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
