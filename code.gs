@@ -15,7 +15,7 @@ function initial() {
 // ghi dữ liệu vào bảng tính thông qua POST
 // dạng json {
     //"sheet": "Database",
-    //"row": 2,
+    //"row": 2, hoặc "row": "?", nếu tìm số hàng
     //"content1": "1",
     //"content2": "Nguyễn Thành Phát",
     //"content3": "62M1-90648",
@@ -26,6 +26,23 @@ function doPost(e) {
   try {
     if (e.postData && e.postData.contents) {
       const data = JSON.parse(e.postData.contents);
+
+      if (data.row === "?") {
+        const analysisSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Analysis");
+        if (!analysisSheet) {
+          return ContentService.createTextOutput("Error: Analysis sheet not found.");
+        }
+
+        if (data.sheet === "Database") {
+          const valueB1 = analysisSheet.getRange("B1").getValue();
+          return ContentService.createTextOutput(valueB1);
+        } else if (data.sheet === "Log") {
+          const valueB2 = analysisSheet.getRange("B2").getValue();
+          return ContentService.createTextOutput(valueB2);
+        } else {
+          return ContentService.createTextOutput("Error: Invalid sheet name for 'row = ?'.");
+        }
+      }
 
       const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(data.sheet);
       if (!sheet) {
@@ -48,16 +65,6 @@ function doPost(e) {
   }
 }
 //-------------------------------------------
-
-// nội dung bảng tính Analysis có thể fetch
-function doGet(e) {
-  let obj = {};
-  const sheet = SpreadsheetApp.openByUrl("https://docs.google.com/spreadsheets/d/").getSheetByName("Analysis");
-  const data = sheet.getDataRange().getValues();
-  obj.content = data;
-  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
-}
-//---------------------------------
 
 // tìm hàng trống đầu tiên trong bảng tính
 function findFirstEmptyRow() {
