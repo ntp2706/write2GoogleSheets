@@ -1,5 +1,5 @@
 function initial() {
-  getIPv4FromFile()
+  findFirstEmptyRow()
   writeToFirstRow("Database", ["ID","Chủ sở hữu","Biển số xe","Ngày hết hạn"])
   adjustColumnWidth("Database",1,50)
   adjustColumnWidth("Database",2,250)
@@ -12,23 +12,94 @@ function initial() {
   adjustColumnWidth("Log",4,100)
 }
 
-// lấy địa chỉ IP của esp8266 từ file ipv4.txt trên Google Drive
-function getIPv4FromFile() {
-  var fileName = "ipv4.txt";
-  var files = DriveApp.getFilesByName(fileName);
+// ghi dữ liệu vào bảng tính thông qua POST
+// dạng json {
+    //"sheet": "Database",
+    //"row": 2,
+    //"content1": "1",
+    //"content2": "Nguyễn Thành Phát",
+    //"content3": "62M1-90648",
+    //"content4": "01/01/2025"
+//}
 
-  if (!files.hasNext()) {
-    Logger.log("Không tìm thấy file: " + fileName);
-    return;
+function doPost(e) {
+  try {
+    if (e.postData && e.postData.contents) {
+      const data = JSON.parse(e.postData.contents);
+
+      const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(data.sheet);
+      if (!sheet) {
+        return ContentService.createTextOutput("Error: Sheet not found.");
+      }
+
+      const row = parseInt(data.row, 10);
+      sheet.getRange(row, 1).setValue(data.content1);
+      sheet.getRange(row, 2).setValue(data.content2);
+      sheet.getRange(row, 3).setValue(data.content3);
+      sheet.getRange(row, 4).setValue(data.content4);
+
+      findFirstEmptyRow();
+      return ContentService.createTextOutput("Success: Data written to sheet.");
+    } else {
+      return ContentService.createTextOutput("Error: No POST data received.");
+    }
+  } catch (error) {
+    return ContentService.createTextOutput("Error: " + error.message);
   }
-
-  var file = files.next();
-  var content = file.getBlob().getDataAsString();
-
-  Logger.log(content);
-  return content
 }
-//----------------------------------------------------------------
+//-------------------------------------------
+
+// nội dung bảng tính Analysis có thể fetch
+function doGet(e) {
+  let obj = {};
+  const sheet = SpreadsheetApp.openByUrl("https://docs.google.com/spreadsheets/d/1EbMqJPy0R0F8AAqUK3mN8yYCB-Gop0klWEOum9Up5zA/edit?gid=1149590755#gid=1149590755").getSheetByName("Analysis");
+  const data = sheet.getDataRange().getValues();
+  obj.content = data;
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+}
+//---------------------------------
+
+// tìm hàng trống đầu tiên trong bảng tính
+function findFirstEmptyRow() {
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const sheets = spreadsheet.getSheets();
+  let results = [];
+  
+  sheets.forEach(sheet => {
+    if (sheet.getName() === "Analysis") {
+      return;
+    }
+
+    const lastRow = sheet.getLastRow();
+    const data = sheet.getRange(1, 1, lastRow || 1, sheet.getLastColumn()).getValues();
+    let emptyRow = data.findIndex(row => row.every(cell => cell === "")) + 1;
+    if (emptyRow === 0) {
+      emptyRow = lastRow + 1;
+    }
+    results.push([sheet.getName(), emptyRow]);
+  });
+  
+  let resultSheet = spreadsheet.getSheetByName("Analysis");
+  if (!resultSheet) {
+    resultSheet = spreadsheet.insertSheet("Analysis");
+  } else {
+    resultSheet.clear();
+  }
+  
+  resultSheet.getRange(1, 1, results.length, results[0].length).setValues(results);
+}
+//-------------------------------------------
+
+// cập nhật hàng trống khi có thay đổi
+function onEdit(e) {
+  const editedSheet = e.source.getActiveSheet();
+  const sheetName = editedSheet.getName();
+  
+  if (sheetName !== "Analysis") {
+    findFirstEmptyRow();
+  }
+}
+//--------------------------------------
 
 // ghi tên các trường vào hàng đầu tiên
 function writeToFirstRow(sheetName, data) {
