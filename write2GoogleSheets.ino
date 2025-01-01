@@ -16,7 +16,7 @@
 //------------------------------
 
 // các dữ liệu cần thiết để ghi vào Google Sheets
-#define WEBAPP_URL "https://script.google.com/macros/s/"
+#define WEBAPP_URL "https://script.google.com/macros/s/*****/exec"
 //-----------------------------------------------
 
 // khởi tạp NTP
@@ -65,6 +65,7 @@ String imageOwnerSend;
 String expiredSend;
 //--------------------------
 
+// lấy định dạng ngày tháng năm dd/mm/yyyy
 void getCurrentTime(){
   timeClient.update();
 
@@ -74,11 +75,13 @@ void getCurrentTime(){
   int monthDay = ptm->tm_mday;
   int currentMonth = ptm->tm_mon+1;
   int currentYear = ptm->tm_year+1900;
-  char formattedDate[11];
-  sprintf(formattedDate, "%02d/%02d/%04d", monthDay, currentMonth + 1, currentYear);
-  expiredSend = String(formattedDate);
+  String dayStr = (monthDay < 10) ? "0" + String(monthDay) : String(monthDay);
+  String monthStr = (currentMonth + 1 < 10) ? "0" + String(currentMonth + 1) : String(currentMonth + 1);
+  expiredSend = dayStr + "/" + monthStr + "/" + String(currentYear);
 }
+//-----------------------------------------
 
+// ghi dữ liệu vào bảng tính /tên bảng tính, /hàng, /nội dung theo cột từ trái sang phải
 void writeToSheet(String sheet, String row, String content1, String content2, String content3, String content4) {
   HTTPClient http;
   http.begin(WEBAPP_URL);
@@ -96,16 +99,16 @@ void writeToSheet(String sheet, String row, String content1, String content2, St
 
   int httpResponseCode = http.POST(jsonData);
 
+  // chuyển hướng liên kết
   if (httpResponseCode == HTTP_CODE_MOVED_PERMANENTLY || httpResponseCode == HTTP_CODE_FOUND) {
-    // Lấy URL chuyển hướng
     String redirectedURL = http.getLocation();
-    http.end(); // Kết thúc kết nối cũ
+    http.end();
 
-    // Kết nối lại với URL chuyển hướng
     http.begin(redirectedURL);
     http.addHeader("Content-Type", "application/json");
     httpResponseCode = http.POST(jsonData);
   }
+  //----------------------
 
   if (httpResponseCode > 0) {
     Serial.println("Tải lên thành công");
@@ -120,7 +123,7 @@ void writeToSheet(String sheet, String row, String content1, String content2, St
 
   http.end();
 }
-
+//--------------------------------------------------------------------------------------
 
 void setup() {
   // thiết lập serial monitor
@@ -203,18 +206,7 @@ void setup() {
   timeClient.begin();
   timeClient.setTimeOffset(7*3600);
   //--------------
-
-  getCurrentTime();
-  writeToSheet("Database","2","2","Nguyễn Thành Phát","62M1-90648",expiredSend);
-  writeToSheet("Log","2","2","Nguyễn Thành Phát","62M1-90648",expiredSend);
-  delay(100);
-  writeToSheet("Database","3","3","Nguyễn Thành Phát","62M1-90648",expiredSend);
-  writeToSheet("Log","3","3","Nguyễn Thành Phát","62M1-90648",expiredSend);
-  delay(100);
-  writeToSheet("Database","6","6","Nguyễn Thành Phát","62M1-90648",expiredSend);
-  writeToSheet("Log","5","5","Nguyễn Thành Phát","62M1-90648",expiredSend);
 }
 
 void loop() {
-  
 }
