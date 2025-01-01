@@ -12,7 +12,7 @@
 //------------------------------
 
 // các dữ liệu cần thiết để ghi vào Google Sheets
-#define WEBAPP_URL "https://script.google.com/macros/s/AKfycbxMAfOM1isrQ7HXL39CXRl3eqe-TPYZthOliufxPu6Ry5YMD7ODX0Qio7DXnjAu63aM/exec"
+#define WEBAPP_URL "https://script.google.com/macros/s/*****/exec"
 //-----------------------------------------------
 
 // khởi tạo NTP
