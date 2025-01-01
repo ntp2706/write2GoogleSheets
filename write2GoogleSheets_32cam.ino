@@ -16,7 +16,7 @@
 //------------------------------
 
 // các dữ liệu cần thiết để ghi vào Google Sheets
-#define WEBAPP_URL "https://script.google.com/macros/s/*****/exec"
+#define WEBAPP_URL "https://script.google.com/macros/s/******/exec"
 //-----------------------------------------------
 
 // khởi tạp NTP
@@ -66,24 +66,30 @@ String expiredSend;
 //--------------------------
 
 // lấy định dạng ngày tháng năm dd/mm/yyyy
-void getCurrentTime(){
+void getCurrentTime() {
   timeClient.update();
 
   time_t epochTime = timeClient.getEpochTime();
-  String formattedTime = timeClient.getFormattedTime();
-  struct tm *ptm = gmtime ((time_t *)&epochTime); 
+  struct tm *ptm = gmtime((time_t *)&epochTime);
+
   int monthDay = ptm->tm_mday;
-  int currentMonth = ptm->tm_mon+1;
-  int currentYear = ptm->tm_year+1900;
-  String dayStr = (monthDay < 10) ? "0" + String(monthDay) : String(monthDay);
-  String monthStr = (currentMonth + 1 < 10) ? "0" + String(currentMonth + 1) : String(currentMonth + 1);
-  expiredSend = dayStr + "/" + monthStr + "/" + String(currentYear);
+  int currentMonth = ptm->tm_mon + 1;
+  int currentYear = ptm->tm_year + 1900;
+
+  char dateBuffer[11];
+  sprintf(dateBuffer, "%02d/%02d/%04d", monthDay, currentMonth + 1, currentYear);
+
+  expiredSend = String(dateBuffer);
+  Serial.println(expiredSend);
 }
 //-----------------------------------------
 
 // ghi dữ liệu vào bảng tính /tên bảng tính, /hàng, /nội dung theo cột từ trái sang phải
 void writeToSheet(String sheet, String row, String content1, String content2, String content3, String content4) {
   HTTPClient http;
+  WiFiClientSecure client;
+  client.setInsecure();
+
   http.begin(WEBAPP_URL);
   http.addHeader("Content-Type", "application/json");
 
@@ -99,21 +105,8 @@ void writeToSheet(String sheet, String row, String content1, String content2, St
 
   int httpResponseCode = http.POST(jsonData);
 
-  // chuyển hướng liên kết
-  if (httpResponseCode == HTTP_CODE_MOVED_PERMANENTLY || httpResponseCode == HTTP_CODE_FOUND) {
-    String redirectedURL = http.getLocation();
-    http.end();
-
-    http.begin(redirectedURL);
-    http.addHeader("Content-Type", "application/json");
-    httpResponseCode = http.POST(jsonData);
-  }
-  //----------------------
-
   if (httpResponseCode > 0) {
     Serial.println("Tải lên thành công");
-    String response = http.getString();
-    Serial.println(response);
   } else {
     Serial.println("Tải lên thất bại");
     Serial.println(httpResponseCode);
