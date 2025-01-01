@@ -15,7 +15,7 @@ function initial() {
 // ghi dữ liệu vào bảng tính thông qua POST
 // dạng json {
     //"sheet": "Database",
-    //"row": 2, hoặc "row": "?", nếu tìm số hàng
+    //"row": 2, hoặc "row": "?", nếu tìm số hàng và không POST các content
     //"content1": "1",
     //"content2": "Nguyễn Thành Phát",
     //"content3": "62M1-90648",
