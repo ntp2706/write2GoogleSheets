@@ -84,6 +84,52 @@ void getCurrentTime() {
 }
 //-----------------------------------------
 
+// lấy giá trị hàng trống
+void getLastRow(String sheet, String row) {
+  HTTPClient http;
+
+  http.begin(WEBAPP_URL);
+  http.addHeader("Content-Type", "application/json");
+
+  String jsonData = 
+    "{"
+      "\"sheet\":\"" + sheet + "\","
+      "\"row\":\"" + row + "\""
+    "}";
+
+  int httpResponseCode = http.POST(jsonData);
+
+  // Xử lý chuyển hướng
+  if (httpResponseCode == HTTP_CODE_MOVED_PERMANENTLY || httpResponseCode == HTTP_CODE_FOUND) {
+    String redirectedURL = http.getLocation();
+
+    // Gửi GET tới URL mới
+    http.end();
+    http.begin(redirectedURL);
+    http.addHeader("Content-Type", "application/json");
+    httpResponseCode = http.GET();
+    //--------------------
+  }
+  //--------------------
+
+  // Xử lý kết quả từ URL chuyển hướng hoặc từ yêu cầu POST ban đầu
+  if (httpResponseCode > 0) {
+    Serial.println("Request Success");
+    String response = http.getString();
+    Serial.println("Response: " + response);
+    lastRow = response;
+  } else {
+    Serial.println("Request Failed");
+    Serial.println(httpResponseCode);
+    String response = http.getString();
+    Serial.println(response);
+  }
+  //-----------------------------------------------------------------
+
+  http.end();
+}
+//--------------------------------------------------------------------------------------
+
 // ghi dữ liệu vào bảng tính /tên bảng tính, /hàng, /nội dung theo cột từ trái sang phải
 void writeToSheet(String sheet, String row, String content1, String content2, String content3, String content4) {
   HTTPClient http;
