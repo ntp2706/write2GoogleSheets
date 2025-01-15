@@ -15,7 +15,7 @@ function initial() {
 // xử lý các yêu cầu POST từ esp32 cam và esp8266
 // dạng json {
     //"sheet": "/tên bảng tính/",
-    //"content1": "/nội dung cột A/",
+    //"content1": "/nội dung cột A/", "?" // để truy vết và cập nhật ngày hết hạn
     //"content2": "/nội dung cột B/",
     //"content3": "/nội dung cột C/",
     //"content4": "/nội dung cột D/"
@@ -27,6 +27,25 @@ function doPost(e) {
       const data = JSON.parse(e.postData.contents);
 
       const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(data.sheet);
+
+      // nếu content1 là "?", thực hiện đối chiếu content2 và content3
+      if (data.content1 === "?") {
+        const lastRow = sheet.getLastRow();
+        const range = sheet.getRange(2, 1, lastRow - 1, 4); // bỏ qua hàng tiêu đề
+        const values = range.getValues();
+
+        for (let i = 0; i < values.length; i++) {
+          const row = values[i];
+          // đối chiếu content2 (cột B) và content3 (cột C) với từng hàng
+            if (row[1] === data.content2 && row[2] === data.content3) {
+              // ghi content4 vào cột D của hàng tìm được
+              sheet.getRange(i + 2, 4).setValue(data.content4 || "");
+              return ContentService.createTextOutput("Updated Successfully.");
+            }
+          //--------------------------------------------------------------
+        }
+        return ContentService.createTextOutput("No Matching Content Found.");
+      }
 
       const lastRow = sheet.getLastRow();
       const nextRow = lastRow + 1; // hàng để ghi dữ liệu
