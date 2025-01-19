@@ -15,7 +15,7 @@ function initial() {
 // xử lý các yêu cầu POST từ esp32 cam và esp8266
 // dạng json {
     //"sheet": "/tên bảng tính/",
-    //"content1": "/nội dung cột A/", "?" // để truy vết và cập nhật ngày hết hạn
+    //"content1": "/nội dung cột A/", "?" // để truy vết và cập nhật ngày hết hạn, "/" // để xóa hàng
     //"content2": "/nội dung cột B/",
     //"content3": "/nội dung cột C/",
     //"content4": "/nội dung cột D/"
@@ -28,8 +28,8 @@ function doPost(e) {
 
       const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(data.sheet);
 
-      // nếu content1 là "?", thực hiện đối chiếu content2 và content3
-      if (data.content1 === "?") {
+      // nếu content1 là "?" hoặc "/"
+      if (data.content1 === "?" || data.content1 === "/") {
         const lastRow = sheet.getLastRow();
         const range = sheet.getRange(2, 1, lastRow - 1, 4); // bỏ qua hàng tiêu đề
         const values = range.getValues();
@@ -37,12 +37,16 @@ function doPost(e) {
         for (let i = 0; i < values.length; i++) {
           const row = values[i];
           // đối chiếu content2 (cột B) và content3 (cột C) với từng hàng
-            if (row[1] === data.content2 && row[2] === data.content3) {
-              // ghi content4 vào cột D của hàng tìm được
+          if (row[1] === data.content2 && row[2] === data.content3) {
+            if (data.content1 === "?") {
               sheet.getRange(i + 2, 4).setValue(data.content4 || "");
               return ContentService.createTextOutput("Updated Successfully.");
+            } else if (data.content1 === "/") {
+              sheet.deleteRow(i + 2);
+              generateOrdinalNumber(); // cập nhật lại số thứ tự
+              return ContentService.createTextOutput("Deleted Successfully.");
             }
-          //--------------------------------------------------------------
+          }
         }
         return ContentService.createTextOutput("No Matching Content Found.");
       }
