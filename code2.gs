@@ -1,15 +1,15 @@
 function initial() {
-  findFirstEmptyRow()
   writeToFirstRow("Database", ["No.","Chủ sở hữu","Biển số xe","Ngày hết hạn"])
   adjustColumnWidth("Database",1,50)
   adjustColumnWidth("Database",2,250)
   adjustColumnWidth("Database",3,100)
   adjustColumnWidth("Database",4,100)
-  writeToFirstRow("Log", ["Ngày","Giờ","Chủ sở hữu","Biển số xe"])
+  writeToFirstRow("Log", ["Ngày","Giờ","Chủ sở hữu","Biển số xe", "Hình ảnh"])
   adjustColumnWidth("Log",1,150)
   adjustColumnWidth("Log",2,100)
   adjustColumnWidth("Log",3,250)
   adjustColumnWidth("Log",4,100)
+  adjustColumnWidth("Log",5,600)
 }
 
 // xử lý các yêu cầu POST từ esp32 cam và esp8266
